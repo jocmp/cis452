@@ -18,7 +18,8 @@
 using namespace std;
 
 const string HELP("\nEnter \"stats\" to toggle resource usage");
-const string PROMPT("SIMP -> ");
+const string PTAG_START("[");
+const string PTAG_END("]-> ");
 const double MILLION(1000000);
 const int RUNNING(1);
 
@@ -52,6 +53,7 @@ int main(int argc, char* argv[]) {
     vector<string> inputs;
     vector<char*> arguments;
     string first_token;
+    int prompt_count = 0;
     // first execvp param
     const char* path;
     int status;
@@ -60,7 +62,8 @@ int main(int argc, char* argv[]) {
     cout << "\nWELCOME TO \033[1;31mSIMP\033[0m: "
         << "SIMP IS MOSTLY POINTLESS" << HELP << endl;
     while(RUNNING) {
-        cout << PROMPT;
+        prompt_count++;
+        cout << PTAG_START << prompt_count << PTAG_END;
         // get and parse the user input
         put_user_input(inputs);
         // If the input is empty, then we should
