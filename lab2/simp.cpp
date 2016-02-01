@@ -35,7 +35,7 @@ void put_user_input(vector<string>& vector) {
 }
 
 void put_arg_vector(vector<string>& strings, vector<char*>& charps) {
-    for(int i = 0; i < strings.size(); i++) {
+    for(unsigned int i = 0; i < strings.size(); i++) {
         // In order to pass a non-const char* to the arguments
         // vector, we must un-cast the const from the return 
         // value of inputs[i].c_str(), which returns
