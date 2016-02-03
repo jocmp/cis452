@@ -22,21 +22,19 @@ int main () {
     if ((pid = fork ()) < 0) {
         perror ("fork failed");
         exit (1);
-    } else if (!pid) {
+    } else if (pid == 0) {
         close (fd[READ]);
-        string actual_str = "alright";
-        int actual_size = actual_str.size() + 1;
-        write (fd[WRITE], (const void *) actual_str.c_str(), (size_t) actual_size);
+        string spawn = "spawned child PID# " + to_string(getpid());
+        int str_size = spawn.size() + 1;
+        write (fd[WRITE], (const void *) spawn.c_str(), (size_t) str_size);
         exit (0);
     }
     close (fd[WRITE]);
-
-    //point D
     num = read (fd[READ], (void *) str, (size_t) sizeof (str));
     if (num > MAX) {
         perror ("pipe read error\n");
         exit (1);
     }
-    puts (str);
+    cout << str << endl;
     return 0;
 }
