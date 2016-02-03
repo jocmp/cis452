@@ -2,23 +2,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <iostream>
 
 #define READ 0
 #define WRITE 1
 #define MAX 1024
-
-void sigUserOne(int sigNum) {
-
-
-}
+using namespace std;
 
 int main () {
-    int pvc[2];
+    int fd[2];
     ssize_t num;
     pid_t pid;
     char str[MAX];
 
-    if (pipe (pvc) < 0) {
+    if (pipe (fd) < 0) {
         perror ("plumbing problem");
         exit (1);
     }
@@ -26,11 +23,16 @@ int main () {
         perror ("fork failed");
         exit (1);
     } else if (!pid) {
-        dup2 (pvc[WRITE], STDOUT_FILENO);
-        close (pvc[WRITE]);
+        close (fd[READ]);
+        string actual_str = "alright";
+        int actual_size = actual_str.size() + 1;
+        write (fd[WRITE], (const void *) actual_str.c_str(), (size_t) actual_size);
         exit (0);
     }
-    num = read (STDIN_FILENO, (void *) str, (size_t) sizeof (str));
+    close (fd[WRITE]);
+
+    //point D
+    num = read (fd[READ], (void *) str, (size_t) sizeof (str));
     if (num > MAX) {
         perror ("pipe read error\n");
         exit (1);
