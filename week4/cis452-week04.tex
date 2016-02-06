@@ -1,0 +1,96 @@
+% !TEX program = pdflatex
+\documentclass[11pt]{article}
+\usepackage{palatino}
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{url}
+%
+% Shell command markup
+\newcommand{\shellcmd}[1]{\texttt{\footnotesize #1}}
+
+% Rename this file to cis452-weekNN.tex
+% To produce a PDF output, type the following on EOS
+%
+%  pdflatex cis452-weekNN.tex
+%
+\title{CIS452 Week-03 Notes}
+\author{Winter 2016}
+\date{February 1-5, 2016}
+\begin{document}
+\maketitle
+
+\noindent
+\textbf{Scribes:} \textit{Josiah Campbell} and \textit{Kevin Tarquinio}
+
+\section*{Announcements}
+\begin{itemize}
+  \item Homework Chapter 4, due February 5th
+\end{itemize}
+
+% Monday 2.1.2016
+\section*{Design Issues}
+\begin{itemize}
+\item fork()
+  \\Two options:
+  \begin{enumerate}
+  \item Fork will always run in a single thread
+  \item Clone (child) will always run multithreaded
+  \end{enumerate}
+\item exec() - load a new binary executable then... do something\\
+  It is uncommon to call exec \textbf{during} your own program. You call exec
+  after fork
+  \begin{enumerate}
+  \item exec will create a new thread
+  \item exec will act in only one thread even if the thread library runs
+  \end{enumerate}
+\item signal() - the solution is dependent
+  \begin{itemize}
+      \item Delivered asynchronously (mostly)
+      \begin{itemize}
+          \item Example: SIGINT using Ctrl-C is async $\rightarrow$ you never
+          know when the system will deliver the call
+      \end{itemize}
+      \item Some signals are delivered synchronously
+      \begin{itemize}
+          \item Example: SIGFPE - floating point errors
+          \item Other arithmetic errors
+          \item Call comes \textit{right after} you do the incorrect thing
+      \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+% Wednesday notes
+\section*{Threading in different languages}
+Happy examples: \url{https://gist.github.com/dulimarta/a7e25cb3984e5d2b8e16}
+
+
+%Friday notes
+\section*{Threads Task parallelism, Data Parallelism, Threading Implementations}
+
+\subsection*{Design for parallelism}
+\begin{enumerate}
+  \item Task Parallelism
+  \begin{itemize}
+    \item The program is modularized so that unique modules run on different CPU's
+	\item Modules consist of different instructions
+	\item Example: A video player with a different modules for audio, UI,
+	        rendering, and buffering is an example.
+  \end{itemize}
+  \item Data Parallelism
+	 \begin{itemize}
+	   \item Deploy smaller subsets of data on multiple CPUs in parallel to
+	        partition the processing workload
+	   \item The same instructions/algorithm is used on each processor but
+	        with smaller data sets (SPMD = Single Program Multiple Data)
+	  \end{itemize}
+\end{enumerate}
+
+
+\subsection*{ Thread State Diagram}
+	  \begin{itemize}
+	  \item The thread state diagram is the same as the process state diagram except that a process with multiple threads has a process state diagram with a containing a thread state diagram for every thread.
+	    \begin{itemize}
+	        \item aaa
+	    \end{itemize}
+	  \end{itemize}
+\end{document}
