@@ -1,3 +1,9 @@
+/* 
+ * Author: Josiah Campbell & Kevin Tarquinio
+ * Version: Winter 2016
+ * Reminder for compiling:
+ * g++ -Wall -g -lpthread -std=c++11 server.cpp -o serv
+ */
 #include <unistd.h>
 #include <stdlib.h>
 #include <iostream>
@@ -7,6 +13,7 @@
 #define RUNNING 1
 
 using namespace std;
+
 // Prototypes
 void *find_file(string arg);
 void sig_handler(int sig_num);
