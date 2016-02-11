@@ -1,0 +1,225 @@
+% !TEX program = pdflatex
+\documentclass[11pt]{article}
+\usepackage{palatino}
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{url}
+%
+% Shell command markup
+\newcommand{\shellcmd}[1]{\texttt{\footnotesize #1}}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+% Source: Overleaf - https://goo.gl/uL1le2
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\footnotesize,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
+
+
+% Rename this file to cis452-weekNN.tex
+% To produce a PDF output, type the following on EOS
+%
+%  pdflatex cis452-week04.tex
+%
+\title{CIS452 Week-04 Notes}
+\author{Winter 2016}
+\date{February 1-5, 2016}
+\begin{document}
+\maketitle
+
+\noindent
+\textbf{Scribes:} \textit{Josiah Campbell} and \textit{Kevin Tarquinio}
+
+\section*{Announcements}
+\begin{itemize}
+  \item Homework Chapter 4, due February 5th
+\end{itemize}
+
+% Monday 2016-02-01
+\section*{Design Issues}
+\begin{itemize}
+\item fork()
+  \\Two options:
+  \begin{enumerate}
+  \item Fork will always run in a single thread
+  \item Clone (child) will always run multithreaded
+  \end{enumerate}
+\item exec() - load a new binary executable then... do something\\
+  It is uncommon to call exec \textbf{during} your own program. You call exec
+  after fork
+  \begin{enumerate}
+  \item exec will create a new thread
+  \item exec will act in only one thread even if the thread library runs
+  \end{enumerate}
+\item signal() - the solution is dependent
+  \begin{itemize}
+      \item Delivered asynchronously (mostly)
+      \begin{itemize}
+          \item Example: SIGINT using Ctrl-C is async $\rightarrow$ you never
+          know when the system will deliver the call
+      \end{itemize}
+      \item Some signals are delivered synchronously
+      \begin{itemize}
+          \item Example: SIGFPE - floating point errors
+          \item Other arithmetic errors
+          \item Call comes \textit{right after} you do the incorrect thing
+      \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\section*{Threading in different languages}
+Happy examples: \url{https://gist.github.com/dulimarta/a7e25cb3984e5d2b8e16}
+\subsection*{phtr.c (Happy)}
+\begin{lstlisting}[language=c]
+  #include <pthread.h>
+  #include <stdio.h>
+
+  void* happy (void* arg) {
+      int* N = (int *)arg;
+      for (int k = 0; k < *N; k++)
+          printf ("Happy %d\n", k);
+      // void* works like java Object. It can be cast to anything
+      return (void *) 0xF00D;
+  }
+
+  int main () {
+      pthread_t happy_id;
+      pthread_attr_t happy_attr;
+
+      pthread_attr_init (&happy_attr);
+      int num;
+      num = 6;
+      // Immediately running starting from
+      // happy function
+      pthread_create (&happy_id, &happy_attr, happy, &num);
+
+      for (int k = 0; k < 20; k++)
+          printf ("Before %d\n", k);
+
+      int rc;
+      pthread_join (happy_id, (void **) &rc);
+      printf ("Thread status is %x\n", rc);
+
+      printf ("End of program\n");
+
+      return 0;
+  }
+\end{lstlisting}
+\subsection*{Happy.cpp}
+\begin{lstlisting}[language=c++]
+  #include <iostream>
+  // Threads are native in C++11, but still need this include
+  #include <thread>
+  #include <future>
+
+  void happy(int N) {
+      for (int k = 0; k < N; k++)
+          std::cout << "HAPPY " << k << std::endl;
+  }
+
+  int main() {
+      // std::async creates a new thread
+      // argument to async can be any type, unlike Java or C (void*)
+      std::future<void>  happy_end ( std::async(happy, val));
+
+      /* The "grumpy" for-loop in the main thread will run concurrently with
+         the "happy" thread */
+      for (int k = 0; k < 20; k++) {
+          std::cout << "grumpy " << k << std::endl;
+      }
+
+      // wait for the "happy" thread to finish
+      // .get() will also return a value if thread has a non-void type
+      happy_end.get();
+      return 0;
+  }
+\end{lstlisting}
+
+% Wednesday 2016-02-03
+\section*{Process/Thread Synchronization}
+\begin{itemize}
+  \item Consumer must stop if the buffer is empty
+    \begin{lstlisting}[language=c]
+      /* consumer */
+      while (true) {
+      	while (counter == 0)
+        	/* do nothing */
+      	c_item = buff[out];
+      	out++;
+      	out %= BUFF_SIZE;
+      	counter--;
+      }
+    \end{lstlisting}
+  \item Producer may overload the buffer,
+  so must stop before the buffer size is full
+    \begin{lstlisting}[language=c]
+      /* Producer */
+      while (true) {
+        p_item = produce_item()
+        while (counter == BUFF_SIZE) {
+        	/* do nothing */
+        }
+        buff[in] = p_item;
+        in %= BUFF_SIZE;
+        counter++;
+      }
+    \end{lstlisting}
+\end{itemize}
+
+\subsection*{Interruptible Points $\rightarrow$ Race condition}
+Consider that “counter++” and “counter--” may both require 3 assembly instructions each
+The update to the shared variable cannot be guaranteed.
+\begin{itemize}
+  \item Mutual exclusion:
+  \begin{itemize}
+    \item Only one thread in critical section at a time
+  \end{itemize}
+  \item Progress
+  \begin{itemize}
+    \item If a process is waiting, that process can only receive permission to
+    enter the \textbf{critical section} by process CS or in exit section
+  \end{itemize}
+  \item Bounded waiting
+  \begin{itemize}
+    \item Whenever a process is waiting, at some point
+    the process can continue.
+    \item Show that no process will dominate – “fair to all processes”
+  \end{itemize}
+\end{itemize}
+\subsection*{Proving Peterson's solution}
+\begin{itemize}
+  \item How do we prove Mutual Exclusion?
+  \begin{enumerate}
+    \item turn $\neq j$ OR \textit{flag[i]} is false $\Rightarrow$ turn $i$
+    \item \textit{flag[i]} is false OR turn $\neq i \Rightarrow$ turn $j$
+    \item CONTRADICTION: There must only be one turn
+  \end{enumerate}
+  \item How do we prove Progress?
+  \begin{itemize}
+    \item Flag is set false definitively in exit section
+  \end{itemize}
+  \item How do we prove Bounded Waiting?
+  \begin{itemize}
+    \item Turn shows that \textit{no one} progress will dominate
+  \end{itemize}
+\end{itemize}
+\subsection*{Hardware Solutions}
+\begin{itemize}
+  \item TestAndSet: What is the old value in that variable? And updating the
+  variable
+  \item CmpAndSwap: Similar to TSL, but update the lock only if condition is
+  met
+  \item Disable interrupt \textbf{THIS IS NOT A GOOD SOLUTION}
+  \item Multiple CPUs: Only disable it for a given CPU but not for the others
+  \textbf{NOT A GREAT SOLUTION EITHER}
+\end{itemize}
+\end{document}
