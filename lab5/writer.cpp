@@ -1,3 +1,8 @@
+/* 
+ * Author: Josiah Campbell & Kevin Tarquinio
+ * Version: Winter 2016
+ * Filename: writer.cpp
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>

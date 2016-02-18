@@ -1,3 +1,8 @@
+/* 
+ * Author: Josiah Campbell & Kevin Tarquinio
+ * Version: Winter 2016
+ * Filename: shm_comm.h
+ */
 #ifndef H_SHM_COMM
 #define H_SHM_COMM
 

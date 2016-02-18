@@ -1,3 +1,8 @@
+/* 
+ * Author: Josiah Campbell & Kevin Tarquinio
+ * Version: Winter 2016
+ * Filename: reader.cpp
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -13,7 +18,6 @@ using namespace std;
 
 int main (int argc, char* argv[]) {
     int shmId;
-    int newData;
     struct shm_comm_data* shmPtr;
     key_t file_to_key;
     string input;
