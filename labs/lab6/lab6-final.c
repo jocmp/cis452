@@ -1,3 +1,8 @@
+/* 
+ * Author: Josiah Campbell & Kevin Tarquinio
+ * Version: Winter 2016
+ * Filename: lab6.c
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -72,7 +77,10 @@ int main (int argc, char* argv[]) {
     wait (&status);
     printf ("values: %li\t%li\n", shmPtr[0], shmPtr[1]);
 
-    semctl(semId, 0, IPC_RMID);
+    if (semctl(semId, 0, IPC_RMID) < 0) {
+        perror ("Can't clean up semaphore\n");
+        exit(1);
+    }
 
     if (shmdt (shmPtr) < 0) {
         perror ("just can't let go\n");
