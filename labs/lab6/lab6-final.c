@@ -1,3 +1,8 @@
+/* 
+ * Author: Josiah Campbell & Kevin Tarquinio
+ * Version: Winter 2016
+ * Filename: lab6.c
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,6 +10,7 @@
 #include <sys/wait.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/sem.h>
 #include <sys/stat.h>
 
 #define SIZE 16
@@ -14,11 +20,16 @@ int main (int argc, char* argv[]) {
     long int i, loop, temp, *shmPtr;
     int shmId;
     pid_t pid;
+    int semId;
+    /* man semop:
+       struct sembuf, containing the following members:
+        unsigned short sem_num;   semaphore number
+         short          sem_op;    semaphore operation
+         short          sem_flg;   operation flags
+    */
+    struct sembuf m_wait = { 0, -1, SEM_UNDO };
+    struct sembuf signal = { 0, 1, SEM_UNDO };
 
-    /*
-     * TODO: get value of loop variable(from command - line
-     * argument
-     */
     if (argc < 2) {
         printf("Not enough arguments!");
         return 0;
@@ -33,15 +44,21 @@ int main (int argc, char* argv[]) {
         perror ("can't attach\n");
         exit (1);
     }
-
     shmPtr[0] = 0;
     shmPtr[1] = 1;
+    /* create a new semaphore set for use by this (and other) processes..*/
+    semId = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    /* initialize the semaphore set referenced by the
+    previously obtained semIdhandle. */
+    semctl(semId, 0, SETVAL, 1);
 
     if (!(pid = fork ())) {
         for (i = 0; i < loop; i++) {
+            semop(semId, &m_wait, 1);
             temp = shmPtr[0];
             shmPtr[0] = shmPtr[1];
             shmPtr[1] = temp;
+            semop(semId, &signal, 1);
         }
         if (shmdt (shmPtr) < 0) {
             perror ("just can 't let go\n");
@@ -50,14 +67,20 @@ int main (int argc, char* argv[]) {
         exit (0);
     } else {
         for (i = 0; i < loop; i++) {
+            semop(semId, &m_wait, 1);
             temp = shmPtr[0];
             shmPtr[0] = shmPtr[1];
             shmPtr[1] = temp;
+            semop(semId, &signal, 1);
         }
     }
-
     wait (&status);
     printf ("values: %li\t%li\n", shmPtr[0], shmPtr[1]);
+
+    if (semctl(semId, 0, IPC_RMID) < 0) {
+        perror ("Can't clean up semaphore\n");
+        exit(1);
+    }
 
     if (shmdt (shmPtr) < 0) {
         perror ("just can't let go\n");
