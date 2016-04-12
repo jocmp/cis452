@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
             cout << getpwuid(statBuf.st_uid)->pw_name
             << " " << getgrgid(statBuf.st_gid)->gr_name << "\t"
             << " " << statBuf.st_size << " "
-            << " " << statBuf.st_mtime << flush;
+            << " " << statBuf.st_mtime << " " << flush;
         }
 
         cout << entryPtr->d_name << flush;
