@@ -5,15 +5,23 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <pwd.h>
 #include <grp.h>
+#include <time.h>
+#include <ctime>
 
 using namespace std;
 
-int print_permissions(const struct stat &fileStat) {
-
-    cout << (S_ISDIR(fileStat.st_mode) ? "d" : "-")
+string print_permissions(const struct stat fileStat) {
+    stringstream permissions;
+    /* 
+     * We "and" the st_mode attribute with the given 
+     * bitmask fields to retrieve each permission that
+     * the file has.
+     */
+    permissions << (S_ISDIR(fileStat.st_mode) ? "d" : "-")
         << ((fileStat.st_mode & S_IRUSR) ? "r" : "-")
         << ((fileStat.st_mode & S_IWUSR) ? "w" : "-")
         << ((fileStat.st_mode & S_IXUSR) ? "x" : "-")
@@ -22,10 +30,17 @@ int print_permissions(const struct stat &fileStat) {
         << ((fileStat.st_mode & S_IXGRP) ? "x" : "-")
         << ((fileStat.st_mode & S_IROTH) ? "r" : "-")
         << ((fileStat.st_mode & S_IWOTH) ? "w" : "-")
-        << ((fileStat.st_mode & S_IXOTH) ? "x" : "-")
-        << " " << flush;
+        << ((fileStat.st_mode & S_IXOTH) ? "x" : "-");
+    
+    return permissions.str();
+}
 
-    return 0;
+string get_format_time(const time_t& time) {
+    char timeBuf[32];
+    if (strftime(timeBuf, sizeof(timeBuf), "%b %e %H:%M", localtime(&time))) {
+        return timeBuf;
+    }
+    return "";
 }
 
 int main(int argc, char* argv[]) {
@@ -40,6 +55,7 @@ int main(int argc, char* argv[]) {
 	struct stat statBuf;
     string current_file_name = "";
 
+    // Check each of the ls-like flags provided by the user
     while ((opt = getopt(argc, argv, "ails")) != -1) {
         switch(opt) {
             case 'a':
@@ -60,44 +76,53 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // If the user did not provide a directory, then we can default
+    // to the current directory
     argc == optind ? listDir = "." : listDir = string(argv[optind]);
 
+    // Attempt to open the current directory, but if the directory is invalid,
+    // attempt to display file. Otherwise, report error to user.
     if ((dirPtr = opendir(listDir.c_str())) == NULL) {
-        cout << listDir << endl;
+        if ((stat(listDir.c_str(), &statBuf)) < 0) {
+            cout << "our_ls: cannot access " << listDir
+                << ": No such file or directory" << endl;
+        } else {
+            cout << listDir << endl;
+        }
         return -1;
     }
 
     while ((entryPtr = readdir(dirPtr))) {
         // Run stat function
-        current_file_name = entryPtr->d_name;
-
         stat(entryPtr->d_name, &statBuf);
-
-        if (current_file_name.at(0) == '.') {
-            if (all_flag != 1) {
+        // If the current file is hidden, don't show it
+        if (string((entryPtr->d_name)).at(0) == '.')
+            if (all_flag != 1)
                 continue;
-            }
-        }
-
+        // Print inode value
         if (inode_flag) {
             cout << statBuf.st_ino << " " << flush;
         }
-
+        // Print permissions for current dir/file
         if (long_flag) {
-            print_permissions(statBuf);
-            cout << statBuf.st_nlink << "\t" << flush;
-            cout << getpwuid(statBuf.st_uid)->pw_name
-            << " " << getgrgid(statBuf.st_gid)->gr_name << "\t"
-            << " " << statBuf.st_size << " "
-            << " " << statBuf.st_mtime << flush;
+            cout << print_permissions(statBuf) << " " << flush;
         }
-
-        cout << entryPtr->d_name << flush;
-
+        // Print size in blocks
         if (byte_flag) {
             cout << "\t" << statBuf.st_blocks << flush;
         }
+        // Print user/group ownership, size in bytes, and formatted time 
+        if (long_flag) {
+            cout << " " << statBuf.st_nlink;
+            // cout << getpwuid(statBuf.st_uid)->pw_name;
+            // cout <<  getgrgid(statBuf.st_gid)->gr_name;
+            cout << "\t " << statBuf.st_size << flush;
+            cout << "\t " << get_format_time(statBuf.st_ctime) 
+                << "\t" << flush;
+        }
 
+        // Print actual filename, regardless
+        cout << entryPtr->d_name << flush;
         cout << endl;
     }
 
