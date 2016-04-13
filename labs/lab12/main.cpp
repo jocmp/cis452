@@ -44,6 +44,7 @@ string get_format_time(const time_t& time) {
 }
 
 int main(int argc, char* argv[]) {
+    const string workingDir = ".";
 	int opt = 0;
     int inode_flag = 0;
     int long_flag = 0;
@@ -82,13 +83,18 @@ int main(int argc, char* argv[]) {
 
     // Attempt to open the current directory, but if the directory is invalid,
     // attempt to display file. Otherwise, report error to user.
-    if ((dirPtr = opendir(listDir.c_str())) == NULL) {
+    if (chdir(listDir.c_str()) < 0) {
         if ((stat(listDir.c_str(), &statBuf)) < 0) {
             cout << "our_ls: cannot access " << listDir
                 << ": No such file or directory" << endl;
         } else {
             cout << listDir << endl;
         }
+        return -1;
+    }
+
+    if ((dirPtr = opendir(workingDir.c_str())) == NULL) {
+        cout << "That didn't work." << endl;
         return -1;
     }
 
@@ -103,26 +109,19 @@ int main(int argc, char* argv[]) {
         if (inode_flag) {
             cout << statBuf.st_ino << " " << flush;
         }
-        // Print permissions for current dir/file
-        if (long_flag) {
-            print_permissions(statBuf);
-            cout << statBuf.st_nlink << "\t" << flush;
-            cout << getpwuid(statBuf.st_uid)->pw_name
-            << " " << getgrgid(statBuf.st_gid)->gr_name << "\t"
-            << " " << statBuf.st_size << " "
-            << " " << statBuf.st_mtime << " " << flush;
-        }
         // Print size in blocks
         if (byte_flag) {
-            cout << "\t" << statBuf.st_blocks << flush;
+            cout << statBuf.st_blocks << " " << flush;
         }
+        // Print permissions for current dir/file
         // Print user/group ownership, size in bytes, and formatted time 
         if (long_flag) {
-            cout << " " << statBuf.st_nlink;
-            // cout << getpwuid(statBuf.st_uid)->pw_name;
-            // cout <<  getgrgid(statBuf.st_gid)->gr_name;
-            cout << "\t " << statBuf.st_size << flush;
-            cout << "\t " << get_format_time(statBuf.st_ctime) 
+            cout << print_permissions(statBuf) 
+                << " " << statBuf.st_nlink
+                << " " << getpwuid(statBuf.st_uid)->pw_name
+                << " " << getgrgid(statBuf.st_gid)->gr_name
+                << "\t " << statBuf.st_size << flush
+                << "\t " << get_format_time(statBuf.st_ctime) 
                 << "\t" << flush;
         }
 
