@@ -105,7 +105,12 @@ int main(int argc, char* argv[]) {
         }
         // Print permissions for current dir/file
         if (long_flag) {
-            cout << print_permissions(statBuf) << " " << flush;
+            print_permissions(statBuf);
+            cout << statBuf.st_nlink << "\t" << flush;
+            cout << getpwuid(statBuf.st_uid)->pw_name
+            << " " << getgrgid(statBuf.st_gid)->gr_name << "\t"
+            << " " << statBuf.st_size << " "
+            << " " << statBuf.st_mtime << " " << flush;
         }
         // Print size in blocks
         if (byte_flag) {
