@@ -98,6 +98,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    struct passwd* passwd;
+    struct group* group;
     while ((entryPtr = readdir(dirPtr))) {
         // Run stat function
         stat(entryPtr->d_name, &statBuf);
@@ -116,18 +118,22 @@ int main(int argc, char* argv[]) {
         // Print permissions for current dir/file
         // Print user/group ownership, size in bytes, and formatted time 
         if (long_flag) {
-            cout << print_permissions(statBuf) 
-                << " " << statBuf.st_nlink
-                << " " << getpwuid(statBuf.st_uid)->pw_name
-                << " " << getgrgid(statBuf.st_gid)->gr_name
-                << "\t " << statBuf.st_size << flush
+            passwd = getpwuid(statBuf.st_uid);
+            group = getgrgid(statBuf.st_gid);
+
+            cout << print_permissions(statBuf) << " " << statBuf.st_nlink;
+            if (passwd != NULL) {
+                cout << " " << getpwuid(statBuf.st_uid)->pw_name;
+            }
+            if (group != NULL) {
+                cout << " " << getgrgid(statBuf.st_gid)->gr_name;
+            }
+            cout << "\t " << statBuf.st_size
                 << "\t " << get_format_time(statBuf.st_ctime) 
                 << "\t" << flush;
         }
-
         // Print actual filename, regardless
-        cout << entryPtr->d_name << flush;
-        cout << endl;
+        cout << entryPtr->d_name << endl;
     }
 
     closedir(dirPtr);
