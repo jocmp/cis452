@@ -1,23 +1,15 @@
+#include <unistd.h>                                                             
+#include <stdlib.h>                                                             
+#include <stdio.h>                                         
+#include <iostream>
 /*
  * Lab 13 Mini-prog
  * Josiah Campbell & Kevin Tarquinio
  * Winter 2016
  */
-#include <dirent.h>
-#include <unistd.h>                                                             
-#include <stdlib.h>                                                             
-#include <stdio.h>                                         
-#include <sys/types.h>
-#include <errno.h>
-#include <iostream>
-
-
-// man 2 link
-// man 2/7 link
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    const string workingDir = ".";
     bool symbolic_flag = false;
     int opt = 0;
     string target = "";
@@ -33,7 +25,7 @@ int main(int argc, char* argv[]) {
                 return -1;
         }
     }
-
+    
     /*
      * We need to make sure that they provided the correct
      * number of paths to link. Too few, and there's not 
@@ -59,9 +51,6 @@ int main(int argc, char* argv[]) {
     } else { /* hard link */
         link(target.c_str(), linkpath.c_str());
     }
-    // If the user did not provide a directory, then we can default
-    // to the current directory
-    // argc == optind ? listDir = "." : listDir = string(argv[optind]);
-
+    
     return 0;
 }
