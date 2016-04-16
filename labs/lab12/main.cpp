@@ -1,5 +1,4 @@
-#include <unistd.h>
-#include <stdio.h>
+// is this Sample Program 1? <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -129,7 +128,7 @@ int main(int argc, char* argv[]) {
                 cout << " " << getgrgid(statBuf.st_gid)->gr_name;
             }
             cout << "\t " << statBuf.st_size
-                << "\t " << get_format_time(statBuf.st_ctime) 
+                << "\t " << get_format_time(statBuf.st_mtime) 
                 << "\t" << flush;
         }
         // Print actual filename, regardless
