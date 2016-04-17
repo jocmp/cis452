@@ -1,6 +1,5 @@
 #include <unistd.h>                                                             
 #include <stdlib.h>                                                             
-#include <stdio.h>                                         
 #include <iostream>
 /*
  * Lab 13 Mini-prog
@@ -10,15 +9,14 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    bool symbolic_flag = false;
+    bool symbolic = false;
     int opt = 0;
     string target = "";
     string linkpath = "";
-    // Check each of the flags provided by the user
     while ((opt = getopt(argc, argv, "s")) != -1) {
         switch(opt) {
             case 's':
-                symbolic_flag = true;
+                symbolic = true;
                 break;
             default: /* '?' */
                 /* We shouldn't get here. */
@@ -46,7 +44,7 @@ int main(int argc, char* argv[]) {
     linkpath = argv[optind + 1];
     
     // Link paths
-    if (symbolic_flag) { /* -s flag supplied */
+    if (symbolic) { /* -s flag supplied */
         symlink(target.c_str(), linkpath.c_str());
     } else { /* hard link */
         link(target.c_str(), linkpath.c_str());
