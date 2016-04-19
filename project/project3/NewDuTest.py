@@ -1,6 +1,6 @@
 import unittest
 
-from modules.DuController import DuController
+from modules.duController import DuController
 
 # def test_winner_horizontal_r0(self):
 
