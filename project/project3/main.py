@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import getopt
 import sys
-import signal
 
 from modules.DuController import DuController
 
@@ -21,9 +20,11 @@ class MainView:
 
     def run(self):
         if len(self.args) > 0:
-            self.controller.depthFirstSearch(self.args[0])
+            self.root_path = self.args[0]
         else:
-            self.controller.depthFirstSearch('.')
+            self.root_path = '.'
+        self.whoa = self.controller.depthFirstSearch(self.root_path)
+        print self.whoa
 
 if __name__ == '__main__':
     main_view = MainView()

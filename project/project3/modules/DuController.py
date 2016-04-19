@@ -16,11 +16,14 @@ class DuController():
         self.discoveredPaths.add(absolutePath)
         size = 0
         if os.path.isdir(absolutePath):
+             sub_files = []
              for item in os.listdir(absolutePath):
                  if item not in self.discoveredPaths:
-                     size += self.depthFirstSearch(os.path.join(absolutePath, item))
+                     sub_file = self.depthFirstSearch(os.path.join(absolutePath, item))
+                     size += sub_file[0][0]
+                     sub_files.append(sub_file)
+             size += os.stat(absolutePath).st_size
              print str(size) + '\t' + absolutePath
-             return size
+             return [(size, absolutePath)] + sub_files
         elif os.path.isfile(absolutePath):
-             print str(os.stat(absolutePath).st_size) + '\t' + absolutePath
-             return os.stat(absolutePath).st_size
+             return [(os.stat(absolutePath).st_size, absolutePath)]
