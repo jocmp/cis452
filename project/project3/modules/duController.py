@@ -94,7 +94,7 @@ class DuController():
             return str(ceil(size / GIGABYTE)) + 'G'
 
     def write_csv(self, du_results):
-        filename = 'proj3-' + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + '-' + gp.getuser() + ".csv"
+        filename = 'proj3-' + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '-' + gp.getuser() + ".csv"
         with open(filename, 'wb') as csv_file:
             writer = csv.writer(csv_file, delimiter=',', quotechar='\'', quoting=csv.QUOTE_MINIMAL)
             for record in du_results:
