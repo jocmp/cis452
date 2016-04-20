@@ -1,16 +1,22 @@
 #!/usr/bin/env python
 import os
+import csv
 from math import ceil
+from datetime import date, datetime
+import getpass as gp
 
+TOP = 0
+
+# Record values
 SIZE = 0
 PATH = 1
-IS_DIR = 2
-FILE_COUNT = 3
-TOP = 0
+IS_DIR = 4
+FILE_COUNT = 5
 
 KILOBYTE = 1000
 MEGABYTE = 1000 * KILOBYTE
 GIGABYTE = 1000 * MEGABYTE
+
 
 class DuController():
     def __init__(self):
@@ -28,38 +34,74 @@ class DuController():
         size = 0
         file_count = 0
         if os.path.isdir(absolutePath):
-             sub_paths = []
-             for item in os.listdir(absolutePath):
-                 if item not in self.discoveredPaths:
-                     sub_file = self.depthFirstSearch(flags, os.path.join(absolutePath, item))
-                     size += sub_file[TOP][SIZE]
-                     file_count += sub_file[TOP][FILE_COUNT]
-                     sub_paths += sub_file
-             size += os.stat(absolutePath).st_size
-             directory = [(size, absolutePath, True, file_count)] + [p for p in sub_paths if p[IS_DIR]]
-             if not 'sort' in flags:
-                 self.print_directory(flags, directory[TOP])
-             return directory
-        elif os.path.isfile(absolutePath):
-             return [(os.stat(absolutePath).st_size, absolutePath, False, 1)]
+            sub_paths = []
+            for item in os.listdir(absolutePath):
+                if item not in self.discoveredPaths:
+                    sub_file = self.depthFirstSearch(flags, os.path.join(absolutePath, item))
+                    try:
+                        size += sub_file[TOP][SIZE]
+                        file_count += sub_file[TOP][FILE_COUNT]
+                        sub_paths += sub_file
+                    except TypeError:
+                        sub_paths += [[0, item, '', '', False, 1]]
 
+
+            size += os.stat(absolutePath).st_size
+            stat = os.stat(absolutePath)
+            access_time = self.get_date_format(stat.st_atime)
+            modify_time = self.get_date_format(stat.st_mtime)
+            directory = [[size, absolutePath, access_time, modify_time, True, file_count]] \
+                        + [p for p in sub_paths if p[IS_DIR]]
+            if not 's' in flags:
+                self.print_directory(flags, directory[TOP])
+            return directory
+        elif os.path.isfile(absolutePath):
+            """
+            Return:
+            * 0 size in Bytes
+            * 1 Absolute Path
+            * 2 Accessed
+            * 3 Modified
+            * 4 Is Directory
+            * 5 File count (always 1)
+            """
+            stat = os.stat(absolutePath)
+            if stat is not None:
+                access_time = self.get_date_format(stat.st_atime)
+                modify_time = self.get_date_format(stat.st_mtime)
+                return [[stat.st_size, absolutePath, access_time, modify_time, False, 1]]
+            else:
+                return [[0, absolutePath, '', '', False, 1]]
 
     def print_directory(self, flags, directory):
         output = ''
-        if 'human readable' in flags:
+        if 'h' in flags:
             output += self.get_human_readable(directory[SIZE])
         else:
             output += str(directory[SIZE])
-        if 'count' in flags:
+        if 'c' in flags:
             output += '\t' + str(directory[FILE_COUNT])
         output += '\t' + directory[PATH]
         print output
 
+    def get_date_format(self, time):
+        try:
+            return datetime.fromtimestamp(int(time)).strftime("%Y-%m-%d-%H:%M:%S")
+        except ValueError:
+            return ''
 
     def get_human_readable(self, size):
         if size < MEGABYTE:
             return str(ceil(size / KILOBYTE)) + 'K'
         elif size < GIGABYTE:
             return str(ceil(size / MEGABYTE)) + 'M'
-        else: # must be huuuuge
+        else:  # must be huuuuge
             return str(ceil(size / GIGABYTE)) + 'G'
+
+    def write_csv(self, du_results):
+        filename = 'proj3-' + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + '-' + gp.getuser() + ".csv"
+        with open(filename, 'wb') as csv_file:
+            writer = csv.writer(csv_file, delimiter=',', quotechar='\'', quoting=csv.QUOTE_MINIMAL)
+            for record in du_results:
+                writer.writerow(record)
+        csv_file.close()

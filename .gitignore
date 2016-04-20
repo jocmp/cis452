@@ -1,3 +1,4 @@
+*.csv
 MyProject/*
 our_ls
 main.dSYM
