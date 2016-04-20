@@ -32,7 +32,8 @@ class DuController():
             return os.path.expanduser(path)
 
     def depthFirstSearch(self, flags, path):
-        self.discoveredPaths.add(path)
+        stat = os.stat(path)
+        self.discoveredPaths.add(stat.inode)
         size = 0
         file_count = 0
         if os.path.isdir(path):
@@ -44,7 +45,6 @@ class DuController():
                     size += sub_file[TOP][SIZE]
                     file_count += sub_file[TOP][FILE_COUNT]
                     sub_paths += sub_file
-            stat = os.stat(path)
             size += stat.st_size
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
@@ -63,7 +63,6 @@ class DuController():
             * 4 Is Directory
             * 5 File count (always 1)
             """
-            stat = os.stat(path)
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
             return [(stat.st_size, path, access_time, modify_time, False, 1)]
