@@ -32,31 +32,33 @@ class DuController():
         else:
             return os.path.expanduser(path)
 
-    def depthFirstSearch(self, flags, path):
-        stat = os.stat(path)
-        self.discoveredPaths.add(stat.st_ino)
+    def depthFirstSearch(self, flags, current_path):
+        current_stat = os.lstat(current_path)
+        self.discoveredPaths.add(current_stat.st_ino)
         size = 0
-        file_count = 0
-        if os.path.isdir(path):
+        file_count = 0 
+        if os.path.stat.S_ISDIR(current_stat.st_mode):
             sub_paths = []
-            for item in os.listdir(path):
-                item_absolute_path = os.path.join(path, item)
-                if os.path.islink(item_absolute_path):
-                    continue
-                if os.stat(item_absolute_path).st_ino not in self.discoveredPaths:
+            for item in os.listdir(current_path):
+                item_absolute_path = os.path.join(current_path, item)
+                item_stat = os.lstat(item_absolute_path)
+                if os.path.islink(item_absolute_path) or \
+                        os.path.stat.S_ISSOCK(item_stat.st_mode):
+                            continue
+                if item_stat.st_ino not in self.discoveredPaths:
                     sub_file = self.depthFirstSearch(flags, item_absolute_path)
                     size += sub_file[TOP][SIZE]
                     file_count += sub_file[TOP][FILE_COUNT]
                     sub_paths += sub_file
-            size += stat.st_size
-            access_time = self.get_date_format(stat.st_atime)
-            modify_time = self.get_date_format(stat.st_mtime)
-            directory = [(size, path, access_time, modify_time, True, file_count)] \
+            size += current_stat.st_size
+            access_time = self.get_date_format(current_stat.st_atime)
+            modify_time = self.get_date_format(current_stat.st_mtime)
+            directory = [(size, current_path, access_time, modify_time, True, file_count)] \
                         + [p for p in sub_paths if p[IS_DIR]]
             if not 's' in flags:
                 self.print_directory(flags, directory[TOP])
             return directory
-        elif os.path.isfile(path):
+        elif os.path.stat.S_ISREG(current_stat.st_mode):
             """
             Return:
             * 0 size in Bytes
@@ -66,12 +68,9 @@ class DuController():
             * 4 Is Directory
             * 5 File count (always 1)
             """
-            access_time = self.get_date_format(stat.st_atime)
-            modify_time = self.get_date_format(stat.st_mtime)
-            if stat.size is None:
-                print stat
-                sys.exit(1)
-            return [(stat.st_size, path, access_time, modify_time, False, 1)]
+            access_time = self.get_date_format(current_stat.st_atime)
+            modify_time = self.get_date_format(current_stat.st_mtime)
+            return [(current_stat.st_size, current_path, access_time, modify_time, False, 1)]
 
     def print_directory(self, flags, directory):
         output = ''
