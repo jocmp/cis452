@@ -13,9 +13,9 @@ PATH = 1
 IS_DIR = 4
 FILE_COUNT = 5
 
-KILOBYTE = 1000
-MEGABYTE = 1000 * KILOBYTE
-GIGABYTE = 1000 * MEGABYTE
+KILOBYTE = 1024
+MEGABYTE = 1024 * KILOBYTE
+GIGABYTE = 1024 * MEGABYTE
 
 
 class DuController():
@@ -43,11 +43,9 @@ class DuController():
                         file_count += sub_file[TOP][FILE_COUNT]
                         sub_paths += sub_file
                     except TypeError:
-                        sub_paths += [[0, item, '', '', False, 1]]
-
-
-            size += os.stat(absolutePath).st_size
+                        print 'Can\'t traverse ' + absolutePath + '\\' + item
             stat = os.stat(absolutePath)
+            size += stat.st_size
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
             directory = [[size, absolutePath, access_time, modify_time, True, file_count]] \
@@ -66,12 +64,9 @@ class DuController():
             * 5 File count (always 1)
             """
             stat = os.stat(absolutePath)
-            if stat is not None:
-                access_time = self.get_date_format(stat.st_atime)
-                modify_time = self.get_date_format(stat.st_mtime)
-                return [[stat.st_size, absolutePath, access_time, modify_time, False, 1]]
-            else:
-                return [[0, absolutePath, '', '', False, 1]]
+            access_time = self.get_date_format(stat.st_atime)
+            modify_time = self.get_date_format(stat.st_mtime)
+            return [[stat.st_size, absolutePath, access_time, modify_time, False, 1]]
 
     def print_directory(self, flags, directory):
         output = ''
