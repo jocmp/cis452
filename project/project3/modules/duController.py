@@ -20,14 +20,16 @@ GIGABYTE = 1024 * MEGABYTE
 
 
 class DuController():
+    discoveredPaths = set()
+
     def __init__(self):
         self.discoveredPaths = set()
 
     def getAbsolutePath(self, path):
         if not path.startswith('~'):
-            return path
+            return os.path.realpath(path)
         else:
-            return os.path.expanduser(path)
+            return os.path.realpath(os.path.expanduser(path))
 
     def depthFirstSearch(self, flags, path):
         absolutePath = self.getAbsolutePath(path)
@@ -37,8 +39,9 @@ class DuController():
         if os.path.isdir(absolutePath):
             sub_paths = []
             for item in os.listdir(absolutePath):
-                if item not in self.discoveredPaths:
-                    sub_file = self.depthFirstSearch(flags, os.path.join(absolutePath, item))
+                item_absolute_path = os.path.realpath(os.path.join(absolutePath, item))
+                if item_absolute_path not in self.discoveredPaths:
+                    sub_file = self.depthFirstSearch(flags, item_absolute_path)
                     try:
                         size += sub_file[TOP][SIZE]
                         file_count += sub_file[TOP][FILE_COUNT]
