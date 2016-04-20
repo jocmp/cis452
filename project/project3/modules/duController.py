@@ -27,19 +27,20 @@ class DuController():
 
     def getAbsolutePath(self, path):
         if not path.startswith('~'):
-            return os.path.realpath(path)
+            return path
         else:
-            return os.path.realpath(os.path.expanduser(path))
+            return os.path.expanduser(path)
 
     def depthFirstSearch(self, flags, path):
-        absolutePath = self.getAbsolutePath(path)
-        self.discoveredPaths.add(absolutePath)
+        self.discoveredPaths.add(path)
         size = 0
         file_count = 0
-        if os.path.isdir(absolutePath):
+        if os.path.islink(path):
+            return [[0, path, 0, 0, False, 0]]
+        elif os.path.isdir(path):
             sub_paths = []
-            for item in os.listdir(absolutePath):
-                item_absolute_path = os.path.realpath(os.path.join(absolutePath, item))
+            for item in os.listdir(path):
+                item_absolute_path = os.path.join(path, item)
                 if item_absolute_path not in self.discoveredPaths:
                     sub_file = self.depthFirstSearch(flags, item_absolute_path)
                     try:
@@ -47,17 +48,17 @@ class DuController():
                         file_count += sub_file[TOP][FILE_COUNT]
                         sub_paths += sub_file
                     except TypeError:
-                        print 'Can\'t traverse ' + absolutePath + '\\' + item
-            stat = os.stat(absolutePath)
+                        print 'Can\'t traverse ' + path + '\\' + item
+            stat = os.stat(path)
             size += stat.st_size
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
-            directory = [[size, absolutePath, access_time, modify_time, True, file_count]] \
+            directory = [[size, path, access_time, modify_time, True, file_count]] \
                         + [p for p in sub_paths if p[IS_DIR]]
             if not 's' in flags:
                 self.print_directory(flags, directory[TOP])
             return directory
-        elif os.path.isfile(absolutePath):
+        elif os.path.isfile(path):
             """
             Return:
             * 0 size in Bytes
@@ -67,10 +68,10 @@ class DuController():
             * 4 Is Directory
             * 5 File count (always 1)
             """
-            stat = os.stat(absolutePath)
+            stat = os.stat(path)
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
-            return [[stat.st_size, absolutePath, access_time, modify_time, False, 1]]
+            return [[stat.st_size, path, access_time, modify_time, False, 1]]
 
     def print_directory(self, flags, directory):
         output = ''

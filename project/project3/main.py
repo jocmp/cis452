@@ -32,11 +32,11 @@ class MainView:
                 self.flags.add('e')
             else:
                 assert False, "unhandled option"
+        self.controller = DuController()
         if len(args) > 0:
-            self.root_path = args[0]
+            self.root_path = self.controller.getAbsolutePath(args[0])
         else:
             self.root_path = '.'
-        self.controller = DuController()
 
     def run(self):
         self.all_paths = self.controller.depthFirstSearch(self.flags, self.root_path)
