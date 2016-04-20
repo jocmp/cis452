@@ -40,7 +40,7 @@ class DuController():
             sub_paths = []
             for item in os.listdir(path):
                 item_absolute_path = os.path.join(path, item)
-                if item_absolute_path not in self.discoveredPaths:
+                if os.stat(item_absolute_path).inode not in self.discoveredPaths:
                     sub_file = self.depthFirstSearch(flags, item_absolute_path)
                     size += sub_file[TOP][SIZE]
                     file_count += sub_file[TOP][FILE_COUNT]
