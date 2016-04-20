@@ -35,25 +35,20 @@ class DuController():
         self.discoveredPaths.add(path)
         size = 0
         file_count = 0
-        if os.path.islink(path):
-            return [[0, path, 0, 0, False, 0]]
-        elif os.path.isdir(path):
+        if os.path.isdir(path):
             sub_paths = []
             for item in os.listdir(path):
                 item_absolute_path = os.path.join(path, item)
                 if item_absolute_path not in self.discoveredPaths:
                     sub_file = self.depthFirstSearch(flags, item_absolute_path)
-                    try:
-                        size += sub_file[TOP][SIZE]
-                        file_count += sub_file[TOP][FILE_COUNT]
-                        sub_paths += sub_file
-                    except TypeError:
-                        print 'Can\'t traverse ' + path + '\\' + item
+                    size += sub_file[TOP][SIZE]
+                    file_count += sub_file[TOP][FILE_COUNT]
+                    sub_paths += sub_file
             stat = os.stat(path)
             size += stat.st_size
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
-            directory = [[size, path, access_time, modify_time, True, file_count]] \
+            directory = [(size, path, access_time, modify_time, True, file_count)] \
                         + [p for p in sub_paths if p[IS_DIR]]
             if not 's' in flags:
                 self.print_directory(flags, directory[TOP])
@@ -71,7 +66,9 @@ class DuController():
             stat = os.stat(path)
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
-            return [[stat.st_size, path, access_time, modify_time, False, 1]]
+            return [(stat.st_size, path, access_time, modify_time, False, 1)]
+        elif os.path.islink(path):
+            return [(0, path, 0, 0, False, 0)]
 
     def print_directory(self, flags, directory):
         output = ''
