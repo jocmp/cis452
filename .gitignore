@@ -1,3 +1,4 @@
+*.pyc
 MyProject/*
 our_ls
 main.dSYM
