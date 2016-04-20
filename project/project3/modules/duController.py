@@ -82,7 +82,7 @@ class DuController():
 
     def get_date_format(self, time):
         try:
-            return datetime.fromtimestamp(int(time)).strftime("%Y-%m-%d-%H:%M:%S")
+            return datetime.fromtimestamp(int(time)).strftime("%Y-%m-%d %H:%M:%S")
         except ValueError:
             return ''
 
@@ -95,7 +95,7 @@ class DuController():
             return str(ceil(size / GIGABYTE)) + 'G'
 
     def write_csv(self, du_results):
-        filename = 'proj3-' + datetime.now().strftime("%Y-%m-%d %H:%M:%S") \
+        filename = 'proj3-' + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") \
                    + '-' + socket.gethostname() + '-' + gp.getuser() + ".csv"
         with open(filename, 'wb') as csv_file:
             writer = csv.writer(csv_file, delimiter=',', quotechar='\'', quoting=csv.QUOTE_MINIMAL)
