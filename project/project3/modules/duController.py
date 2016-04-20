@@ -33,14 +33,16 @@ class DuController():
 
     def depthFirstSearch(self, flags, path):
         stat = os.stat(path)
-        self.discoveredPaths.add(stat.inode)
+        self.discoveredPaths.add(stat.st_ino)
         size = 0
         file_count = 0
         if os.path.isdir(path):
             sub_paths = []
             for item in os.listdir(path):
                 item_absolute_path = os.path.join(path, item)
-                if os.stat(item_absolute_path).inode not in self.discoveredPaths:
+                if os.path.islink(item_absolute_path):
+                    continue
+                if os.stat(item_absolute_path).st_ino not in self.discoveredPaths:
                     sub_file = self.depthFirstSearch(flags, item_absolute_path)
                     size += sub_file[TOP][SIZE]
                     file_count += sub_file[TOP][FILE_COUNT]
@@ -66,8 +68,6 @@ class DuController():
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
             return [(stat.st_size, path, access_time, modify_time, False, 1)]
-        elif os.path.islink(path):
-            return [(0, path, 0, 0, False, 0)]
 
     def print_directory(self, flags, directory):
         output = ''
