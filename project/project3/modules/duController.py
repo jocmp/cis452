@@ -5,6 +5,7 @@ from math import ceil
 from datetime import date, datetime
 import getpass as gp
 import socket
+import sys
 
 TOP = 0
 
@@ -67,6 +68,9 @@ class DuController():
             """
             access_time = self.get_date_format(stat.st_atime)
             modify_time = self.get_date_format(stat.st_mtime)
+            if stat.size is None:
+                print stat
+                sys.exit(1)
             return [(stat.st_size, path, access_time, modify_time, False, 1)]
 
     def print_directory(self, flags, directory):
