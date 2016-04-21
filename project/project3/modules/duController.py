@@ -18,12 +18,7 @@ KILOBYTE = 1024
 MEGABYTE = 1024 * KILOBYTE
 GIGABYTE = 1024 * MEGABYTE
 
-
 class DuController():
-    discoveredPaths = set()
-
-    def __init__(self):
-        self.discoveredPaths = set()
 
     def getAbsolutePath(self, path):
         if not path.startswith('~'):
@@ -33,7 +28,6 @@ class DuController():
 
     def depthFirstSearch(self, flags, dir_path):
         dir_stat = os.lstat(dir_path)
-        self.discoveredPaths.add(dir_stat.st_ino)
         size = 0
         file_count = 0 
         sub_paths = []
