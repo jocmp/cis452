@@ -12,8 +12,7 @@ TOP = 0
 # Record values
 SIZE = 0
 PATH = 1
-IS_DIR = 4
-FILE_COUNT = 5
+FILE_COUNT = 4
 
 KILOBYTE = 1024
 MEGABYTE = 1024 * KILOBYTE
@@ -32,45 +31,34 @@ class DuController():
         else:
             return os.path.expanduser(path)
 
-    def depthFirstSearch(self, flags, current_path):
-        current_stat = os.lstat(current_path)
-        self.discoveredPaths.add(current_stat.st_ino)
+    def depthFirstSearch(self, flags, dir_path):
+        dir_stat = os.lstat(dir_path)
+        self.discoveredPaths.add(dir_stat.st_ino)
         size = 0
         file_count = 0 
-        if os.path.stat.S_ISDIR(current_stat.st_mode):
-            sub_paths = []
-            for item in os.listdir(current_path):
-                item_absolute_path = os.path.join(current_path, item)
-                item_stat = os.lstat(item_absolute_path)
-                if os.path.islink(item_absolute_path) or \
-                        os.path.stat.S_ISSOCK(item_stat.st_mode):
-                            continue
-                if item_stat.st_ino not in self.discoveredPaths:
-                    sub_file = self.depthFirstSearch(flags, item_absolute_path)
-                    size += sub_file[TOP][SIZE]
-                    file_count += sub_file[TOP][FILE_COUNT]
-                    sub_paths += sub_file
-            size += current_stat.st_size
-            access_time = self.get_date_format(current_stat.st_atime)
-            modify_time = self.get_date_format(current_stat.st_mtime)
-            directory = [(size, current_path, access_time, modify_time, True, file_count)] \
-                        + [p for p in sub_paths if p[IS_DIR]]
-            if not 's' in flags:
-                self.print_directory(flags, directory[TOP])
-            return directory
-        elif os.path.stat.S_ISREG(current_stat.st_mode):
-            """
-            Return:
-            * 0 size in Bytes
-            * 1 Absolute Path
-            * 2 Accessed
-            * 3 Modified
-            * 4 Is Directory
-            * 5 File count (always 1)
-            """
-            access_time = self.get_date_format(current_stat.st_atime)
-            modify_time = self.get_date_format(current_stat.st_mtime)
-            return [(current_stat.st_size, current_path, access_time, modify_time, False, 1)]
+        sub_paths = []
+        for item in os.listdir(dir_path):
+            item_absolute_path = os.path.join(dir_path, item)
+            item_stat = os.lstat(item_absolute_path)
+            if os.path.islink(item_absolute_path) or \
+                    os.path.stat.S_ISSOCK(item_stat.st_mode):
+                        continue
+            elif os.path.stat.S_ISREG(item_stat.st_mode):
+                size += item_stat.st_size
+                file_count += 1
+            elif os.path.stat.S_ISDIR(dir_stat.st_mode):
+                sub_file = self.depthFirstSearch(flags, item_absolute_path)
+                size += sub_file[TOP][SIZE]
+                file_count += sub_file[TOP][FILE_COUNT]
+                sub_paths += sub_file
+        size += dir_stat.st_size
+        access_time = self.get_date_format(dir_stat.st_atime)
+        modify_time = self.get_date_format(dir_stat.st_mtime)
+        directory = [(size, dir_path, access_time, modify_time, file_count)]\
+                + sub_paths
+        if not 's' in flags:
+            self.print_directory(flags, directory[TOP])
+        return directory
 
     def print_directory(self, flags, directory):
         output = ''
