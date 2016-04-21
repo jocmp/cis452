@@ -21,7 +21,6 @@ GIGABYTE = 1024 * MEGABYTE
 
 
 class DuController():
-    discoveredPaths = set()
 
     def __init__(self):
         self.discoveredPaths = set()
@@ -36,20 +35,19 @@ class DuController():
         current_stat = os.lstat(current_path)
         self.discoveredPaths.add(current_stat.st_ino)
         size = 0
-        file_count = 0 
+        file_count = 0
         if os.path.stat.S_ISDIR(current_stat.st_mode):
             sub_paths = []
             for item in os.listdir(current_path):
                 item_absolute_path = os.path.join(current_path, item)
                 item_stat = os.lstat(item_absolute_path)
                 if os.path.islink(item_absolute_path) or \
-                        os.path.stat.S_ISSOCK(item_stat.st_mode):
-                            continue
-                if item_stat.st_ino not in self.discoveredPaths:
-                    sub_file = self.depthFirstSearch(flags, item_absolute_path)
-                    size += sub_file[TOP][SIZE]
-                    file_count += sub_file[TOP][FILE_COUNT]
-                    sub_paths += sub_file
+                    os.path.stat.S_ISSOCK(item_stat.st_mode):
+                        continue
+                sub_file = self.depthFirstSearch(flags, item_absolute_path)
+                size += sub_file[TOP][SIZE]
+                file_count += sub_file[TOP][FILE_COUNT]
+                sub_paths += sub_file
             size += current_stat.st_size
             access_time = self.get_date_format(current_stat.st_atime)
             modify_time = self.get_date_format(current_stat.st_mtime)
