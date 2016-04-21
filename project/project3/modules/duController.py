@@ -37,10 +37,10 @@ class DuController():
             if os.path.islink(item_absolute_path) or \
                     os.path.stat.S_ISSOCK(item_stat.st_mode):
                         continue
-            elif os.path.stat.S_ISREG(item_stat.st_mode):
+            elif os.path.isfile(item_absolute_path):
                 size += item_stat.st_size
                 file_count += 1
-            elif os.path.stat.S_ISDIR(dir_stat.st_mode):
+            elif os.path.isdir(item_absolute_path):
                 sub_file = self.depthFirstSearch(flags, item_absolute_path)
                 size += sub_file[TOP][SIZE]
                 file_count += sub_file[TOP][FILE_COUNT]
