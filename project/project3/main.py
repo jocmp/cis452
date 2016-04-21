@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import getopt
 import sys
+import os
 
 from modules.duController import DuController
 
@@ -39,6 +40,9 @@ class MainView:
             self.root_path = '.'
 
     def run(self):
+        if not os.path.exists(self.root_path):
+            print "Path does not exist."
+            return
         self.all_paths = self.controller.depthFirstSearch(self.flags, self.root_path)
         if 's' in self.flags:
             self.all_paths.sort(key=lambda paths: paths[SIZE])
