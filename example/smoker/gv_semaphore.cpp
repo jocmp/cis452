@@ -20,7 +20,7 @@ void semaphore::wait() {
     /* the following code using lambda expressions is shorter */
     /* this->count is outside the scope of lambda, we must capture
      * "this" */
-    cv.wait (lock, [this] {return count > 0; });
+    cv.wait (lock, [this] { return count > 0; });
 #endif
     count--;
 
